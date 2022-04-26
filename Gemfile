@@ -44,5 +44,11 @@ end
 group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
+  gem 'bcrypt'
+  gem 'figaro'
+  gem 'jwt'
+  gem 'rubocop', require: false
+  gem 'rubocop-performance', '~> 1.11', require: false
+  gem 'rubocop-rails', '~> 2.11', require: false
 end
 
