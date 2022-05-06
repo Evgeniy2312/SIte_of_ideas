@@ -1,3 +1,0 @@
-class EntrepreneurController < ApplicationController
-
-end

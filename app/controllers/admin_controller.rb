@@ -3,10 +3,11 @@ class AdminController < ApplicationController
   before_action :test_role
   before_action :find_user, only: %i[show destroy]
 
+
   def index
     users = User.all
     if users.present?
-      respond_find_user(User.all)
+      respond_find_user_or_users(User.all)
     else
       render json: {
         status: { code: 404, message: "No one user hasn't been found" }
@@ -33,8 +34,8 @@ class AdminController < ApplicationController
 
   def find_by_role
     user = User.find_by(role: params[:role])
-    if  user.present?
-      respond_find_user(user)
+    if user.present?
+      respond_find_user_or_users(user)
     else
       respond_not_find_user_by_role
     end
@@ -64,7 +65,7 @@ class AdminController < ApplicationController
     }
   end
 
-  def respond_find_user(user)
+  def respond_find_user_or_users(user)
     render json: {
       status: { code: 200 },
       data: user
