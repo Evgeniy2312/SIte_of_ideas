@@ -1,8 +1,8 @@
 class IdeaController < ApplicationController
   before_action :authenticate_user!
-  before_action :find_idea, only: %i[update show destroy update_status]
-  before_action :test_role_to_admin, only: %i[show_all_ideas]
+  before_action :find_idea, only: %i[update show destroy update_status add_investor_to_idea]
   before_action :test_role_to_entrepreneur, only: %i[create]
+  before_action :test_role_to_investor, only: %i[add_investor_to_idea]
 
   def create
     @idea = current_user.ideas.create idea_params
@@ -14,33 +14,46 @@ class IdeaController < ApplicationController
       }
     else
       send_to_email
-      respond_create_idea(@idea)
+      respond_create_idea
+    end
+  end
+
+  def add_investor_to_idea
+    if @idea.present?
+      @idea.users.append current_user
+      render json: {
+        status: { code: 200, message: 'You invested this idea!' }
+      }
+    else
+      not_idea
     end
   end
 
   def update
-    if test_to_update_idea && @idea.update(idea_params)
-      render json: {
-        status: { code: 200, message: 'Idea updated successfully' }
-      }
+    if @idea.present?
+      if test_to_update_destroy_idea && @idea.update(idea_params)
+        render json: {
+          status: { code: 200, message: 'Idea updated successfully' }
+        }
+      else
+        render json: {
+          status: { code: 400 },
+          data: @idea.errors.messages
+        }
+      end
     else
-      render json: {
-        status: { code: 400 },
-        data: @idea.errors.messages
-      }
+      not_idea
     end
   end
 
   def destroy
-    if @idea.present? && test_to_update_idea
+    if @idea.present? && test_to_update_destroy_idea
       @idea.destroy
       render json: {
         status: { code: 200, message: 'Idea deleted successfully' }
       }
     else
-      render json: {
-        status: { code: 400, message: "This idea doesn't exist" }
-      }
+      not_idea
     end
   end
 
@@ -65,9 +78,7 @@ class IdeaController < ApplicationController
         data: @idea
       }
     else
-      render json: {
-        status: { code: 400, message: "This idea doesn't exist" }
-      }
+      not_idea
     end
   end
 
@@ -83,7 +94,7 @@ class IdeaController < ApplicationController
   end
 
   def update_status
-    if @idea.present? && test_to_update_idea
+    if @idea.present? && test_to_update_destroy_idea
       @idea.access = params[:access]
       send_to_email
       @idea.save
@@ -99,6 +110,12 @@ class IdeaController < ApplicationController
 
   private
 
+  def not_idea
+    render json: {
+      status: { code: 400, message: "This idea doesn't exist" }
+    }
+  end
+
   def test_role_to_entrepreneur
     return if current_user.entrepreneur?
 
@@ -107,8 +124,8 @@ class IdeaController < ApplicationController
     }
   end
 
-  def test_role_to_admin
-    return if current_user.admin?
+  def test_role_to_investor
+    return if current_user.investor?
 
     render json: {
       status: { code: 403, message: 'You are forbidden' }
@@ -116,14 +133,12 @@ class IdeaController < ApplicationController
 
   end
 
-  def test_to_update_idea
+  def test_to_update_destroy_idea
     if (current_user.entrepreneur? && current_user.ideas.find_by(id: @idea.id)) ||
       current_user.admin?
       return true
     end
-
     false
-
   end
 
   def idea_params
@@ -138,10 +153,10 @@ class IdeaController < ApplicationController
     }
   end
 
-  def respond_create_idea(idea)
+  def respond_create_idea
     render json: {
       status: { code: 200 },
-      data: idea
+      data: @idea
     }
   end
 
@@ -150,7 +165,6 @@ class IdeaController < ApplicationController
   end
 
   def send_to_email
-    # binding.pry
     if @idea.access == 'common'
       users = User.where role: 'investor'
       users.each do |user|
