@@ -125,7 +125,7 @@ class CommentController < ApplicationController
   end
 
   def test_belong_to_user
-    return true if current_user.comments.find_by id: @comment.id.present?
+    return true if current_user.comments.find_by id: @comment.id || current_user.admin?
 
     false
   end
