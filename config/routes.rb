@@ -21,6 +21,12 @@ Rails.application.routes.draw do
   get '/show_under_comment/:id', to: 'comment#show_under_comment'
   #
 
+  # tag
+  resources :tag, only: %i[update destroy show]
+  post '/create_tags/:idea_id', to: 'tag#create'
+  get '/get_tags/:q', to: 'tag#get_tags'
+  get '/get_tags_idea/:idea_id', to: 'tag#index'
+  #
   as :user do
     put "/update_password" => "users/registrations#update_password"
   end
