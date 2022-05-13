@@ -1,6 +1,6 @@
 class DislikeController < ApplicationController
   before_action :authenticate_user!
-  before_action :get_idea, only: %i[create destroy get_amount_dislikes]
+  before_action :get_idea
 
   def create
     if @idea.present?
