@@ -27,6 +27,19 @@ Rails.application.routes.draw do
   get '/get_tags/:q', to: 'tag#get_tags'
   get '/get_tags_idea/:idea_id', to: 'tag#index'
   #
+
+  # dislike
+  post '/add_dislike/:idea_id', to: 'dislike#create'
+  delete '/delete_dislike/:idea_id', to: 'dislike#destroy'
+  get '/get_dislike_idea/:idea_id', to: 'dislike#get_amount_dislikes'
+  #
+
+  # like
+  post '/add_like/:idea_id', to: 'like#create'
+  delete '/delete_like/:idea_id', to: 'like#destroy'
+  get '/get_like_idea/:idea_id', to: 'like#get_amount_likes'
+  #
+
   as :user do
     put "/update_password" => "users/registrations#update_password"
   end
