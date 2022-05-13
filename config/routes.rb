@@ -40,6 +40,13 @@ Rails.application.routes.draw do
   get '/get_like_idea/:idea_id', to: 'like#get_amount_likes'
   #
 
+  # rate
+  post '/add_rate/:idea_id', to: 'rate#create'
+  delete '/delete_rate/:idea_id', to: 'rate#destroy'
+  put '/update_rate/:idea_id', to: 'rate#update'
+  get '/get_rate_idea/:idea_id', to: 'rate#get_rate_idea'
+  #
+
   as :user do
     put "/update_password" => "users/registrations#update_password"
   end
