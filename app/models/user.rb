@@ -36,9 +36,9 @@ class User < ApplicationRecord
             length: { maximum: 12 }
 
   has_and_belongs_to_many :ideas, foreign_key: 'user_id'
-  has_one :like, through: :ideas, dependent: :destroy, source: :likes
-  has_one :dislike, through: :ideas, dependent: :destroy, source: :dislikes
-  has_one :rate, through: :ideas, dependent: :destroy, source: :rate
+  has_many :likes, through: :ideas, dependent: :destroy
+  has_many :dislikes, through: :ideas, dependent: :destroy
+  has_and_belongs_to_many :rates, through: :ideas, dependent: :destroy, foreign_key: 'user_id'
   has_many :comments, through: :ideas, dependent: :destroy
 
 end
