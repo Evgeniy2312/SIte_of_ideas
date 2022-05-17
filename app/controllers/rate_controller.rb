@@ -9,7 +9,7 @@ class RateController < ApplicationController
         @rate = @idea.rate
         return ban_rate if @rate.users.exists? id: current_user
 
-        @rate.mark += params_rate[:mark]
+        @rate.mark = (@rate.mark + params_rate[:mark]) / 2
       else
         @rate = Rate.new(**params_rate, idea: @idea)
       end
@@ -73,7 +73,7 @@ class RateController < ApplicationController
   def respond_get_rate
     render json: {
       status: { code: 200 },
-      data: @idea.rate.mark / @idea.rate.users.count
+      data: @idea.rate.mark
     }
   end
 
