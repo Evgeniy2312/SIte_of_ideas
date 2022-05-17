@@ -58,12 +58,9 @@ class IdeaController < ApplicationController
   end
 
   def index
-    ideas = current_user.ideas
-    if ideas.present?
-      render json: {
-        status: { code: 200 },
-        data: ideas
-      }
+    @ideas = current_user.ideas
+    if @ideas.present?
+      respond_find_ideas
     else
       render json: {
         status: { code: 400, message: "You haven't ideas, you need to create them" }
@@ -83,9 +80,9 @@ class IdeaController < ApplicationController
   end
 
   def show_all_ideas
-    ideas = Idea.all
-    if ideas.present?
-      respond_find_ideas(ideas)
+    @ideas = Idea.all
+    if @ideas.present?
+      respond_find_ideas
     else
       render json: {
         status: { code: 404, message: "No one idea hasn't been found" }
@@ -108,7 +105,98 @@ class IdeaController < ApplicationController
     end
   end
 
+  def get_by_sphere
+    @ideas = Idea.where(sphere: params[:sphere]).order(:name)
+    if @ideas.present?
+      respond_find_ideas
+    else
+      render json: {
+        status: { code: 404, message: "Ideas don't find in this sphere" }
+      }
+    end
+  end
+
+  def get_by_problem
+    @ideas = Idea.where(problem: params[:problem]).order(:name)
+    return respond_find_ideas if @ideas.present?
+
+    render json: {
+      status: { code: 404, message: "Ideas don't find with this problem" }
+    }
+  end
+
+  def get_by_location
+    @ideas = Idea.where(location: params[:location]).order(:name)
+    return respond_find_ideas if @ideas.present?
+
+    render json: {
+      status: { code: 404, message: "Ideas don't find in this place" }
+    }
+  end
+
+  def get_by_name
+    @ideas = Idea.where(name: params[:name]).order(:name)
+    if @ideas.present?
+      respond_find_ideas
+    else
+      render json: {
+        status: { code: 404, message: "Ideas don't find with this name" }
+      }
+    end
+  end
+
+  def get_by_tag
+    @ideas = Idea.joins(:tags).where(tags: { name: params[:tag_name] }).order(:name)
+    if @ideas.present?
+      respond_find_ideas
+    else
+      render json: {
+        status: { code: 404, message: "Ideas don't find with this name of tag" }
+      }
+    end
+  end
+
+  def get_by_author
+    @ideas = Idea.joins(:users).where(users: { role: "entrepreneur", name: params[:name_author] }).order(:name)
+    if @ideas.present?
+      respond_find_ideas
+    else
+      render json: {
+        status: { code: 404, message: "Ideas don't find with name of author" }
+      }
+    end
+  end
+
+  def get_by_rate
+    @ideas = Idea.joins(:rate).where(rates: { mark: params[:rate_idea] }).order(:name)
+    if @ideas.present?
+      respond_find_ideas
+    else
+      render json: {
+        status: { code: 404, message: "Ideas don't exist with this rate" }
+      }
+    end
+  end
+
+  def get_by_amount_like
+    @ideas = []
+    get_ideas_by_amount_like
+    if @ideas.present?
+      respond_find_ideas
+    else
+      render json: {
+        status: { code: 404, message: "Ideas don't exist with this amount of likes" }
+      }
+    end
+  end
+
   private
+
+  def get_ideas_by_amount_like
+    Idea.joins(:likes).find_each do |idea|
+      @ideas.push idea if idea.likes.count >= params[:amount].to_i
+    end
+  end
 
   def not_idea
     render json: {
@@ -138,6 +226,7 @@ class IdeaController < ApplicationController
       current_user.admin?
       return true
     end
+
     false
   end
 
@@ -146,10 +235,10 @@ class IdeaController < ApplicationController
                                  :location, :plans, :problem, :necessary, :team)
   end
 
-  def respond_find_ideas(ideas)
+  def respond_find_ideas
     render json: {
       status: { code: 200 },
-      data: ideas
+      data: @ideas
     }
   end
 

@@ -11,6 +11,14 @@ Rails.application.routes.draw do
   get '/show_all_ideas', to: 'idea#show_all_ideas'
   put '/update_status/:id/:access', to: 'idea#update_status'
   put '/add_investor_idea/:id', to: 'idea#add_investor_to_idea'
+  get '/get_by_sphere/:sphere', to: 'idea#get_by_sphere'
+  get '/get_by_tag/:tag_name', to: 'idea#get_by_tag'
+  get '/get_by_author/:name_author', to: 'idea#get_by_author'
+  get '/get_by_rate/:rate_idea', to: 'idea#get_by_rate'
+  get '/get_by_amount_like/:amount', to: 'idea#get_by_amount_like'
+  get '/get_by_problem/:problem', to: 'idea#get_by_problem'
+  get '/get_by_location/:location', to: 'idea#get_by_location'
+  get '/get_by_name/:name', to: 'idea#get_by_name'
   #
 
   # comment
