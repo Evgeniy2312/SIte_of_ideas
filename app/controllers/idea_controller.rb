@@ -80,6 +80,7 @@ class IdeaController < ApplicationController
   end
 
   def show_all_ideas
+
     @ideas = Idea.all
     if @ideas.present?
       respond_find_ideas
