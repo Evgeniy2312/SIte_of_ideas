@@ -1,11 +1,11 @@
 class CommentController < ApplicationController
   before_action :authenticate_user!
   before_action :find_comment, only: %i[update destroy show create_under_comment show_under_comment]
+  before_action :find_idea, only: %i[create show_comment_to_idea]
 
   def create
-    idea = Idea.find_by id: params[:idea_id]
-    if idea.present?
-      comment = Comment.new(**comment_params, idea: idea, user: current_user)
+    if @idea.present?
+      comment = Comment.new(**comment_params, idea: @idea, user: current_user)
       if comment.save
         render json: {
           status: { code: 200 },
@@ -66,11 +66,10 @@ class CommentController < ApplicationController
   end
 
   def show_comment_to_idea
-    idea = Idea.find_by id: params[:idea_id]
-    if idea.present? && idea.comments.present?
+    if @idea.present? && @idea.comments.present?
       render json: {
         status: { code: 200 },
-        data: idea.comments
+        data: @idea.comments
       }
     else
       render json: {
@@ -109,6 +108,10 @@ class CommentController < ApplicationController
   end
 
   private
+
+  def find_idea
+    @idea = Idea.find_by id: params[:idea_id]
+  end
 
   def not_comment
     render json: {

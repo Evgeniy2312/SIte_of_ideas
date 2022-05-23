@@ -3,6 +3,7 @@
 class Users::RegistrationsController < Devise::RegistrationsController
 
   before_action :authenticate_user!
+  before_action :test_to_admin, only: %i[create]
 
   respond_to :json
   # before_action : configure_sign_up_params, only: [:create]
@@ -14,11 +15,9 @@ class Users::RegistrationsController < Devise::RegistrationsController
   # end
 
   # POST /resource
-  def create
-    return respond_to_on_registration if params[:user][:role] == 'admin'
-
-    super
-  end
+  # def create
+  #   super
+  # end
 
   # GET /resource/edit
   # def edit
@@ -77,6 +76,10 @@ class Users::RegistrationsController < Devise::RegistrationsController
 
   private
 
+  def test_to_admin
+    respond_to_on_registration if params[:user][:role] == 'admin'
+  end
+
   def test_password(user)
     BCrypt::Password.new(current_user.encrypted_password) == (user[:current_password]) &&
       user[:password] == user[:password_confirmation]
@@ -91,7 +94,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
     else
       render json: {
         status: { message: "User couldn't be created successfully. #{resource.errors.full_messages.to_sentence}" }
-      }, status: :unprocessable_entity
+      }
     end
   end
 

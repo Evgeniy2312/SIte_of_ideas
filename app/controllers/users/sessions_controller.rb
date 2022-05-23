@@ -3,9 +3,10 @@
 class Users::SessionsController < Devise::SessionsController
 
   before_action :authenticate_user!
-
   respond_to :json
-  # before_action :configure_sign_in_params, only: [:create]
+
+
+  # before_action :configure_sign_in_params, only: %i[create]
 
   # GET /resource/sign_in
   # def new
