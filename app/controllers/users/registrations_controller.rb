@@ -37,9 +37,9 @@ class Users::RegistrationsController < Devise::RegistrationsController
   def update_password
     if current_user.present? && test_password(params[:user])
       current_user.update(encrypted_password: BCrypt::Password.create(params[:user][:password]))
-      respond_to_password_change
+      render json: { message: "Password changed"}
     else
-      respond_to_password_not_change
+      render json: { message: "Error in changed password"}
     end
   end
 
@@ -77,7 +77,7 @@ class Users::RegistrationsController < Devise::RegistrationsController
   private
 
   def test_to_admin
-    respond_to_on_registration if params[:user][:role] == 'admin'
+    render json: { message: 'Registration admin cancel' } if params[:user][:role] == 'admin'
   end
 
   def test_password(user)
@@ -97,26 +97,4 @@ class Users::RegistrationsController < Devise::RegistrationsController
       }
     end
   end
-
-  def respond_to_on_registration
-    render json: {
-      status: 405,
-      message: 'Registration admin cancel'
-    }, status: :method_not_allowed
-  end
-
-  def respond_to_password_change
-    render json: {
-      status: 200,
-      message: 'Password changed successfully'
-    }, status: :ok
-  end
-
-  def respond_to_password_not_change
-    render json: {
-      status: 400,
-      message: 'Error in changing password'
-    }, status: :bad_request
-  end
-
 end

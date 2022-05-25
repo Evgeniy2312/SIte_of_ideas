@@ -2,134 +2,68 @@ class CommentController < ApplicationController
   before_action :authenticate_user!
   before_action :find_comment, only: %i[update destroy show create_under_comment show_under_comment]
   before_action :find_idea, only: %i[create show_comment_to_idea]
+  before_action :belonging_to_user_comment?, only: %i[update destroy]
 
   def create
-    if @idea.present?
-      comment = Comment.new(**comment_params, idea: @idea, user: current_user)
-      if comment.save
-        render json: {
-          status: { code: 200 },
-          data: comment
-        }
-      else
-        render json: {
-          status: { code: 400 },
-          data: comment.errors.full_messages
-        }
-      end
-    else
-      not_comment
-    end
+    @comment = Comment.new(**comment_params, idea: @idea, user: current_user)
+    save_comment
   end
 
   def update
-    if @comment.present?
-      if @comment.update(comment_params) && test_belong_to_user
-        render json: {
-          status: { code: 200, message: 'Comment updated successfully' }
-        }
-      else
-        render json: {
-          status: { code: 400 },
-          data: @comment.errors.full_messages
-        }
-      end
-    else
-      not_comment
-    end
+    @comment.update(comment_params)
+    save_comment
   end
 
   def destroy
-    if @comment.present? && test_belong_to_user
-      @comment.destroy
-      render json: {
-        status: { code: 200, message: "Comment deleted successfully" }
-      }
-    else
-      render json: {
-        status: { code: 400, message: "This comment doesn't exist or it's action forbidden" }
-      }
-    end
+    @comment.destroy
+    render json: { message: "Comment deleted successfully" }
   end
 
   def show
-    if @comment.present?
-      render json: {
-        status: { code: 200 },
-        data: @comment
-      }
-    else
-      render json: {
-        status: { code: 400, message: "This comment doesn't exist" }
-      }
-    end
+    render json: @comment
   end
 
   def show_comment_to_idea
-    if @idea.present? && @idea.comments.present?
-      render json: {
-        status: { code: 200 },
-        data: @idea.comments
-      }
-    else
-      render json: {
-        status: { code: 400, message: "This idea doesn't exist or comments for him absent" }
-      }
-    end
+    render json: @idea.comments
   end
 
   def show_under_comment
-    if @comment.present? && @comment.comments.present?
-      render json: {
-        status: { code: 200 },
-        data: @comment.comments
-      }
-    else
-      render json: {
-        status: { code: 400, message: "This comment doesn't exist or comments for him absent" }
-      }
-    end
+    render json: @comment.comments
   end
 
   def create_under_comment
     child_comment = Comment.new(**comment_params, idea: @comment.idea,
                                 user: current_user, parent_comment: @comment)
     if child_comment.save
-      render json: {
-        status: { code: 200 },
-        data: child_comment
-      }
+      render json: child_comment
     else
-      render json: {
-        status: { code: 400 },
-        data: child_comment.errors.full_messages
-      }
+      render json: child_comment.errors.full_messages
     end
   end
 
   private
 
-  def find_idea
-    @idea = Idea.find_by id: params[:idea_id]
-  end
-
-  def not_comment
-    render json: {
-      status: { code: 404, message: "This comment doesn't exist" }
-    }
+  def save_comment
+    if @comment.save
+      render json: @comment
+    else
+      render json: @comment.errors.full_messages
+    end
   end
 
   def comment_params
-    params.require(:comment).permit(:description)
+    params.require(:comment).permit!
   end
 
   def find_comment
-    @comment = Comment.find_by id: params[:id]
+    if Comment.find_by id: params[:comment_id]
+      @comment = Comment.find params[:comment_id]
+    else
+      render json: { message: "Comment don't found" }
+    end
   end
 
-  def test_belong_to_user
-    return true if current_user.comments.find_by id: @comment.id || current_user.admin?
-
-    false
+  def belonging_to_user_comment?
+    restrict unless current_user.comment_ids.include?(@comment.id) || current_user.admin?
   end
 end

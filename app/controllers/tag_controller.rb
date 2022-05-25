@@ -2,150 +2,70 @@ class TagController < ApplicationController
 
   before_action :authenticate_user!
   before_action :find_tag, only: %i[update destroy show]
-  before_action :test_user_entrepreneur_admin, only: %i[create update destroy]
+  before_action :find_idea, only: %i[create index]
+  before_action :belonging_idea_user?, only: %i[create]
+  before_action :access_update_destroy, only: %i[update destroy]
 
   def create
-    @idea = Idea.find_by id: params[:idea_id]
-    if @idea && test_idea_belong_user
-      if Tag.exists? name: tag_params[:name]
-        tag = Tag.find_by name: tag_params[:name]
-        return respond_belong_to_idea if tag.ideas.find_by id: @idea.id
-
-        tag.ideas.append @idea
-      else
-        tag = Tag.new(tag_params)
-        tag.ideas.append @idea
-        return respond_to_create_tag if tag.save
-
-        respond_not_create_tag(tag)
-      end
+    if Tag.exists? name: tag_params[:name]
+      @tag = Tag.find_by name: tag_params[:name]
+      return render json: { message: "Tag has already existed" } if @tag.idea_ids.include?(@idea.id)
     else
-      render json: {
-        status: { code: 400, message: "This idea doesn't exist or it's action forbidden" }
-      }
+      @tag = Tag.new(tag_params)
     end
+    @tag.ideas.append @idea
+    save_tag
   end
 
+
   def update
-    if @tag.present?
-      if test_tag_to_update_destroy && @tag.update(tag_params)
-        render json: {
-          status: { code: 200, message: "Tag successfully updated" }
-        }
-      else
-        render json: {
-          status: { code: 400 },
-          data: @tag.errors.full_messages
-        }
-      end
-    else
-      render json: {
-        status: { code: 400, message: "This tag doesn't exist" }
-      }
-    end
+    @tag.update(tag_params)
+    save_tag
   end
 
   def destroy
-    if @tag.present? && test_tag_to_update_destroy
-      @tag.destroy
-      render json: {
-        status: { code: 200, message: "Tag successfully deleted" }
-      }
-    else
-      render json: {
-        status: { code: 400, message: "This tag doesn't exist or it's action forbidden" }
-      }
-    end
+    @tag.destroy
+    render json: { message: "Tag successfully deleted" }
   end
 
   def index
-    @idea = Idea.find_by id: params[:idea_id]
-    if @idea.present? && @idea.tags.present?
-      render json: {
-        status: { code: 200 },
-        data: @idea.tags
-      }
-    else
-      render json: {
-        status: { code: 400, message: "This idea doesn't exist or tags absent" }
-      }
-    end
+    render json: @idea.tags
   end
 
   def show
-    if @tag.present?
-      render json: {
-        status: { code: 200 },
-        data: @tag
-      }
-    else
-      render json: {
-        status: { code: 400, message: "This tag doesn't exist" }
-      }
-    end
+    render json: @tag
   end
 
   def get_tags
     @tags = Tag.order(:name).where('tags.name LIKE ?', "%#{params[:q]}%")
-    if @tags.present?
-      render json: {
-        status: { code: 200 },
-        data: @tags
-      }
-    else
-      render json: {
-        status: { code: 400, message: "Cant' find matches" }
-      }
-    end
+    render json: @tags
   end
 
   private
 
-  def test_tag_to_update_destroy
-    return true if @tag.ideas.map { |idea| idea.users.exists? id: current_user.id } || current_user.admin?
-
-    false
-  end
-
-  def respond_not_create_tag(tag)
-    render json: {
-      status: { code: 400 },
-      data: tag.errors.full_messages
-    }
-  end
-
-  def respond_to_create_tag
-    render json: {
-      code: 200, message: "Tag successfully added"
-    }
-  end
-
-  def respond_belong_to_idea
-    render json: {
-      status: { code: 400, message: "This tag has already belonged to idea" }
-    }
+  def access_update_destroy
+    flag = @tag.ideas.map { |idea| idea.user_ids.include?(current_user.id) } && current_user.entrepreneur?
+    restrict unless current_user.admin? || flag
   end
 
   def tag_params
-    params.require(:tag).permit(:name)
+    params.require(:tag).permit!
   end
 
   def find_tag
-    @tag = Tag.find_by id: params[:id]
+    if Tag.find_by id: params[:tag_id].present?
+      @tag = Tag.find params[:tag_id]
+    else
+      render json: { message: "Tag didn't find" }
+    end
   end
 
-  def test_idea_belong_user
-    return true if current_user.ideas.where id: @idea.id || current_user.admin?
-
-    false
+  def save_tag
+    if @tag.save
+      render json: @tag
+    else
+      render json: @tag.errors.full_messages
+    end
   end
 
-  def test_user_entrepreneur_admin
-    return if current_user.entrepreneur? || current_user.admin?
-
-    render json: {
-      status: { code: 403, message: 'You are forbidden' }
-    }
-
-  end
 end

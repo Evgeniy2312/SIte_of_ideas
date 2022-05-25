@@ -2,6 +2,23 @@ class ApplicationController < ActionController::API
 
   before_action :configure_permitted_parameters, if: :devise_controller?
 
+  def restrict
+    render json: {
+      message: "Access restricted"
+    }
+  end
+
+  def find_idea
+    if Idea.find_by(id: params[:id]).present?
+      @idea = Idea.find params[:id]
+    else
+      render json: { message: "Idea didn't find" }
+    end
+  end
+
+  def belonging_idea_user?
+    restrict unless current_user.admin? || (current_user.entrepreneur? && @idea.user_ids.include?(current_user.id))
+  end
 
   protected
 
