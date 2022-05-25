@@ -13,6 +13,7 @@ module NewIdeas
 
 
     config.middleware.use ActionDispatch::Session::CookieStore
+    config.middleware.use ActionDispatch::Cookies
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

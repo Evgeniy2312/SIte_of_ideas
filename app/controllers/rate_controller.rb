@@ -1,127 +1,67 @@
 class RateController < ApplicationController
   before_action :authenticate_user!
-  before_action :get_idea
-  before_action :test_user_or_admin, only: %i[destroy]
+  before_action :find_idea
+  before_action :belonging_idea_user?, only: %i[destroy]
+  before_action :get_rate, except: %i[create]
+  before_action :filter_update_rate, only: %i[update]
 
   def create
-    if @idea.present?
-      if @idea.rate.present?
-        @rate = @idea.rate
-        return ban_rate if @rate.users.exists? id: current_user
+    if @idea.rate.present?
+      @rate = @idea.rate
+      return ban_rate if @rate.user_ids.include?(current_user.id)
 
-        @rate.mark = (@rate.mark + params_rate[:mark]) / 2
-      else
-        @rate = Rate.new(**params_rate, idea: @idea)
-      end
-
-      @rate.users.append current_user
-      return respond_to_save if @rate.save
-
-      not_save_rate
+      @rate.mark = (@rate.mark + params_rate[:mark]) / 2
     else
-      not_idea
+      @rate = Rate.new(**params_rate, idea: @idea)
     end
+    @rate.users.append current_user
+    save_rate
   end
 
   def destroy
-    if @idea.present?
-      if @idea.rate.present?
-        @idea.rate.destroy
-        return render json: {
-          status: { code: 200, message: 'Rate deleted successfully' }
-        }
-      end
-      render json: {
-        status: { code: 400, message: "Rate doesn't exist" }
-      }
-    else
-      not_idea
-    end
-
+    @rate.destroy
+    render json: {
+      status: { code: 200, message: 'Rate deleted successfully' }
+    }
   end
 
   def update
-    if @idea.present?
-      if @idea.rate.present? && @idea.rate.users.exists?(id: current_user)
-        @idea.rate.mark += params_rate[:mark]
-        return respond_to_update if @idea.rate.save
-
-        return not_save_rate
-      end
-      render json: {
-        status: { code: 400, message: "Rate doesn't exist or you need to rate before updating him" }
-      }
-    else
-      not_idea
-    end
+    @rate.mark = (@rate.mark + params_rate[:mark]) / 2
+    save_rate
   end
 
   def get_rate_idea
-    if @idea.present?
-      return respond_get_rate if @idea.rate.present?
-
-      render json: {
-        status: { code: 400, message: "Rate doesn't exist" }
-      }
-    else
-      not_idea
-    end
+    render json: @rate
   end
 
   private
 
-  def respond_get_rate
-    render json: {
-      status: { code: 200 },
-      data: @idea.rate.mark
-    }
-  end
-
-  def test_user_or_admin
-    return if (current_user.entrepreneur? && current_user.ideas.exists?(id: params[:idea_id])) ||
-      current_user.admin?
-
-    render json: {
-      status: { code: 403, message: 'You are forbidden' }
-    }
-  end
-
-  def get_idea
-    @idea = Idea.find_by id: params[:idea_id]
-  end
-
-  def not_idea
-    render json: {
-      status: { code: 400, message: "This idea doesn't exist" }
-    }
-  end
-
   def ban_rate
-    render json: {
-      status: { code: 400, message: "You have already rated it's idea!" }
-    }
+    render json: { message: "You have already rated it's idea!" }
   end
 
   def params_rate
-    params.require(:rate).permit(:mark)
+    params.require(:rate).permit!
   end
 
-  def not_save_rate
-    render json: {
-      status: { status: 400 },
-      data: @idea.rate.errors.full_messages
-    }
+  def get_rate
+    if @idea.rate.present?
+      @rate = @idea.rate
+    else
+      render json: { message: "Rate doesn't exist" }
+    end
   end
 
-  def respond_to_save
-    render json: {
-      status: { status: 200, message: "Rate added successfully" }
-    }
+  def save_rate
+    if @rate.save
+      render json: @rate
+    else
+      render json: @rate.errors.full_messages
+    end
   end
 
-  def respond_to_update
-    render json: {
-      status: { code: 200, message: "Rate successfully updated" }
-    }
+  def filter_update_rate
+    restrict unless @rate.user_ids.include?(current_user.id) || current_user.admin?
   end
+
 end

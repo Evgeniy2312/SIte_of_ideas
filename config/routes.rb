@@ -3,7 +3,7 @@ Rails.application.routes.draw do
 
   # admin
   resources :admin, only: %i[destroy show index]
-  get '/find_by_role/', to: 'admin#find_by_role'
+  get '/find_by_role/:role', to: 'admin#find_by_role'
   #
 
   # idea
@@ -23,36 +23,39 @@ Rails.application.routes.draw do
 
   # comment
   resources :comment, only: %i[update destroy show]
-  post '/create_comment/:idea_id', to: 'comment#create'
-  post '/create_under_comment/:id', to: 'comment#create_under_comment'
-  get '/show_comment_idea/:idea_id', to: 'comment#show_comment_to_idea'
-  get '/show_under_comment/:id', to: 'comment#show_under_comment'
+  post '/create_comment/:id', to: 'comment#create'
+  post '/create_under_comment/:comment_id', to: 'comment#create_under_comment'
+  put '/update_comment/:comment_id', to: 'comment#update'
+  get '/show_comment_idea/:id', to: 'comment#show_comment_to_idea'
+  get '/show_under_comment/:comment_id', to: 'comment#show_under_comment'
   #
 
   # tag
   resources :tag, only: %i[update destroy show]
-  post '/create_tags/:idea_id', to: 'tag#create'
+  post '/create_tags/:id', to: 'tag#create'
+  put '/update_tag/:tag_id', to: 'tag#update'
+  delete '/delete_tag/:tag_id', to: 'tag#destroy'
+  get '/get_tag/:tag_id', to: 'tag#show'
   get '/get_tags/:q', to: 'tag#get_tags'
-  get '/get_tags_idea/:idea_id', to: 'tag#index'
+  get '/get_tags_idea/:id', to: 'tag#index'
   #
 
   # dislike
-  post '/add_dislike/:idea_id', to: 'dislike#create'
-  delete '/delete_dislike/:idea_id', to: 'dislike#destroy'
-  get '/get_dislike_idea/:idea_id', to: 'dislike#get_amount_dislikes'
-  #
+  post '/add_dislike/:id', to: 'dislike#create'
+  delete '/delete_dislike/:id', to: 'dislike#destroy'
+  get '/get_dislike_idea/:id', to: 'dislike#get_amount_dislikes'
 
   # like
-  post '/add_like/:idea_id', to: 'like#create'
-  delete '/delete_like/:idea_id', to: 'like#destroy'
-  get '/get_like_idea/:idea_id', to: 'like#get_amount_likes'
+  post '/add_like/:id', to: 'like#create'
+  delete '/delete_like/:id', to: 'like#destroy'
+  get '/get_like_idea/:id', to: 'like#get_amount_likes'
   #
 
   # rate
-  post '/add_rate/:idea_id', to: 'rate#create'
-  delete '/delete_rate/:idea_id', to: 'rate#destroy'
-  put '/update_rate/:idea_id', to: 'rate#update'
-  get '/get_rate_idea/:idea_id', to: 'rate#get_rate_idea'
+  post '/add_rate/:id', to: 'rate#create'
+  delete '/delete_rate/:id', to: 'rate#destroy'
+  put '/update_rate/:id', to: 'rate#update'
+  get '/get_rate_idea/:id', to: 'rate#get_rate_idea'
   #
 
   as :user do

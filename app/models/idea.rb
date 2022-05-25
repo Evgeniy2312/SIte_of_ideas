@@ -37,4 +37,9 @@ class Idea < ApplicationRecord
   has_and_belongs_to_many :users, foreign_key: 'idea_id'
   has_and_belongs_to_many :tags, foreign_key: 'idea_id'
 
+  scope :commons, -> { where(access: common) }
+
+
+
+
 end
