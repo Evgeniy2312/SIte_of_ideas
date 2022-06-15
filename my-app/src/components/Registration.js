@@ -1,10 +1,8 @@
 import React, {useState} from 'react'
-import {NavLink} from "react-router-dom";
+
 import axios from "axios";
 
-export const Login = () => {
-
-    const history = useHistory()
+export default function Registration() {
 
     let [email, setEmail] = useState("email")
     let [password, setPassword] = useState("password")
@@ -17,22 +15,21 @@ export const Login = () => {
         e.preventDefault();
 
         const user = {
-            email: email,
-            password: password,
-            confirmPassword: confirmPassword,
-            name: name
+            email,
+            password,
+            confirmPassword,
+            name
         };
 
-        // axios.post(`http://localhost:3001/login`, { user })
-        //     .then(res => {
-        //         console.log(res);
-        //         console.log(res);
-        //         setMessage(res.data.status.message);
-        //     })
-        //     .catch(res => {
-        //         setMessage(res.response.data);
-        //         console.log(res.response)
-        //     })
+        axios.post(`http://localhost:3001/signup`, { user })
+            .then(res => {
+                console.log(res);
+                setMessage(res.data.status.message);
+            })
+            .catch(res => {
+                setMessage(res.response.data);
+                console.log(res.response)
+            })
     }
     return (
         <div >
@@ -82,4 +79,5 @@ export const Login = () => {
         </div>
     )
 }
+
 

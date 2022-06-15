@@ -17,7 +17,7 @@ class ApplicationController < ActionController::API
   end
 
   def belonging_idea_user?
-    restrict unless current_user.admin? || (current_user.entrepreneur? && @idea.user_ids.include?(current_user.id))
+    restrict unless current_user.admin? || (current_user.entrepreneur? && @idea.user_ids.include?(currenexitt_user.id))
   end
 
   protected

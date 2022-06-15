@@ -1,9 +1,11 @@
 import React, {useState} from 'react'
-import {NavLink} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import axios from "axios";
 
-export const Login = () => {
+export default function Login(){
 
+
+    const history = useNavigate();
     let [email, setEmail] = useState("eevvv@gmail.com")
     let [password, setPassword] = useState("12345678")
     let [message, setMessage] = useState()
@@ -19,10 +21,9 @@ export const Login = () => {
 
         await axios.post(`http://localhost:3001/login`, {user})
             .then(res => {
-                console.log(res);
-                console.log(res);
                 console.log(res.headers['authorization'])
-                setMessage(res.data.status.message);
+                axios.defaults.headers.common = {'Authorization': res.headers['authorization']}
+                history('/ideas')
             })
             .catch(res => {
                 setMessage(res.response.data);
