@@ -1,39 +1,59 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
+import NaviBar from "./NaviBar"
+import styles from "../style/card.module.scss";
+import {Card} from "react-bootstrap";
+import {useNavigate} from "react-router-dom";
+import {getToken} from "../jwt_functions";
 
 
 const API_URL = "http://localhost:3001/show_all_ideas"
 
-export default function Ideas(){
+export default function Ideas() {
 
     const [ideas, setIdeas] = useState([])
+    const history = useNavigate();
 
     useEffect(() => {
-        fetchIdeas()
+        fetchIdeas();
     }, [])
 
     async function fetchIdeas() {
         try {
-            const response = await axios.get(API_URL)
+            let response = await axios.get(API_URL, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": getToken(),
+                },
+            })
             setIdeas(response.data)
         } catch (e) {
-            alert(e)
+            alert(e.message)
+            history("/login")
         }
     }
+
     return (
-        <div>
-            <h1>There are all ideas</h1>
-            {ideas.map(idea => (
-                <div key={idea.id}>
-                    <h1>{idea.description}</h1>
-                    <p>{idea.sphere}</p>
-                    <p>{idea.location}</p>
-                    <p>{idea.problem}</p>
-                    <p>{idea.team}</p>
-                    <p>{idea.plans}</p>
-                    <p>{idea.necessary}</p>
-                    <div style={{border: "solid 1px"}}/>
-                </div>
-            ))}
-        </div>);
+        <>
+            <NaviBar/>
+            <h1 className={styles.header}>There are all ideas</h1>
+            <div className={styles.card_display}>
+                {ideas.map(idea => (
+                    <div key={idea.id}>
+                        <Card style={{width: '18rem'}}>
+                            <Card.Body>
+                                <Card.Title>{idea.name}</Card.Title>
+                                <Card.Subtitle className="mb-2 text-muted">{idea.location}</Card.Subtitle>
+                                <Card.Text>
+                                    {idea.description}
+                                </Card.Text>
+                                <Card.Link href="#">Card Link</Card.Link>
+                                <Card.Link href="#">Another Link</Card.Link>
+                            </Card.Body>
+                        </Card>
+                    </div>
+                ))}
+            </div>
+        </>
+    );
 }

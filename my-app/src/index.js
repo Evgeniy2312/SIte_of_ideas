@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import {
     BrowserRouter,
     Routes,
@@ -11,6 +10,10 @@ import reportWebVitals from './reportWebVitals';
 import Login from "./components/Login";
 import Registration from "./components/Registration";
 import PagesOfIdeas from "./components/PagesOfIdeas";
+import Home from "./components/Home"
+import About from "./components/About";
+import UserIdeas from "./components/UserIdeas";
+import UpdateIdea from "./components/idea/UpdateIdea";
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -22,6 +25,10 @@ root.render(
                 <Route path="/login" element={<Login/>}/>
                 <Route path="/registration" element={<Registration/>}/>
                 <Route path="/ideas" element={<PagesOfIdeas/>}/>
+                <Route path="/home" element={<Home/>}/>
+                <Route path="/my_ideas" element={<UserIdeas/>}/>
+                <Route path="/update_idea/:idea_id" element={<UpdateIdea/>}/>
+                <Route path="/about" element={<About/>}/>
             </Routes>
         </BrowserRouter>
     </React.StrictMode>

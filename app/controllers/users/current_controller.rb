@@ -4,6 +4,6 @@ class Users::CurrentController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    render json: current_user, status: :ok
+    render json: current_user.as_json(include: :ideas), status: :ok
   end
 end

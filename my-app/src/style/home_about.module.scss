@@ -1,0 +1,31 @@
+@import "zero_style.module";
+
+.display_elements{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 20px;
+}
+
+.text_header{
+  color: white;
+}
+
+.description{
+  text-align: center;
+  font-size: 20px;
+  color: white;
+}
+
+.img{
+  margin-top: 330px;
+  position: absolute;
+  z-index: -1000;
+  width: 100vw;
+  height: 100vh;
+  max-width: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}

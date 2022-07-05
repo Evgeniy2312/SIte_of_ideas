@@ -70,8 +70,10 @@ Rails.application.routes.draw do
   controllers: {
     sessions: 'users/sessions',
     registrations: 'users/registrations',
-    passwords: 'users/password'
+    passwords: 'users/password',
+    confirmations: 'users/confirmations'
   }
+
 
 
 

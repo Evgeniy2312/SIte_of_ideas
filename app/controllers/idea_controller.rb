@@ -34,15 +34,15 @@ class IdeaController < ApplicationController
 
   def index
     @ideas = current_user.ideas.order(:name).page(params[:page])
-    render json: @ideas
+    rendering_ideas
   end
 
   def show
     case @idea.access
     when 'personal'
-      render json: @idea if @idea.user_ids.include?(current_user.id)
+      rendering_idea if @idea.user_ids.include?(current_user.id)
     when 'common'
-      render json: @idea
+      rendering_idea
     else
       render json: { message: "Something gone wrong!" }
     end
@@ -50,7 +50,7 @@ class IdeaController < ApplicationController
 
   def show_all_ideas
     @ideas = Idea.common.order(:name).page(params[:page])
-    render json: @ideas
+    rendering_ideas
   end
 
   def update_status
@@ -61,44 +61,44 @@ class IdeaController < ApplicationController
 
   def get_by_sphere
     @ideas = Idea.where(sphere: params[:sphere]).order(:name).page(params[:page])
-    render json: @ideas
+    rendering_ideas
   end
 
   def get_by_problem
     @ideas = Idea.where(problem: params[:problem]).order(:name).page(params[:page])
-    render json: @ideas
+    rendering_ideas
   end
 
   def get_by_location
     @ideas = Idea.where(location: params[:location]).order(:name).page(params[:page])
-    render json: @ideas
+    rendering_ideas
   end
 
   def get_by_name
     @ideas = Idea.where(name: params[:name]).order(:name).page(params[:page])
-    render json: @ideas
+    rendering_ideas
   end
 
   def get_by_tag
     @ideas = Idea.joins(:tags).where(tags: { name: params[:tag_name] }).order(:name).page(params[:page])
-    render json: @ideas
+    rendering_ideas
   end
 
   def get_by_author
     @ideas = Idea.joins(:users).where(users: { role: "entrepreneur", name: params[:name_author] }).order(:name)
                  .page(params[:page])
-    render json: @ideas
+    rendering_ideas
   end
 
   def get_by_rate
     @ideas = Idea.joins(:rate).where(rates: { mark: params[:rate_idea] }).order(:name).page(params[:page])
-    render json: @ideas
+    rendering_ideas
   end
 
   def get_by_amount_like
     @ideas = []
     get_ideas_by_amount_like
-    render json: @ideas
+    rendering_ideas
   end
 
   private
@@ -127,19 +127,27 @@ class IdeaController < ApplicationController
 
   def save_idea
     if @idea.save
-      render json: @idea
+      rendering_idea
     else
       render json: @idea.errors.full_messages
     end
   end
 
+  def rendering_ideas
+    render json: @ideas.as_json(include: %i[users comments dislikes likes rate tags])
+  end
+
+  def rendering_idea
+    render json: @idea.as_json(include: %i[users comments dislikes likes rate tags])
+  end
+
   def send_to_email
     if @idea.common?
-      User.where role: 'investor'.each do |user|
+      User.where(role: "investor").each do |user|
         UserMailer.with(user: user, idea: @idea).appeared_idea.deliver_now
       end
     end
   end
-
 end
+
 
