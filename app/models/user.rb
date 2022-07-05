@@ -35,4 +35,8 @@ class User < ApplicationRecord
   has_and_belongs_to_many :rates, through: :ideas, dependent: :destroy, foreign_key: 'user_id'
   has_many :comments, dependent: :destroy
 
+  def jwt_payload
+    super.merge('ideas' => ideas)
+  end
+
 end
